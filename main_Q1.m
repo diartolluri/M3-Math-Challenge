@@ -41,11 +41,11 @@ function main_Q1()
         % Module A: Calculate exact post-tax net income
         net_income = calculate_taxes(p);
         
-        % Module B: Estimate total household essential costs
-        household_essentials = calculate_essentials(p, cost_data);
+        % Module B: Estimate baseline single-adult essential costs
+        base_essentials = calculate_essentials(p, cost_data);
         
-        % Module C: Convert household costs to individual costs using OECD scale
-        indiv_essentials = apply_oecd_scale(household_essentials, p.Adults, p.Children);
+        % Module C: Convert baseline single-adult costs to individual's share of household costs using OECD scale
+        indiv_essentials = apply_oecd_scale(base_essentials, p.Adults, p.Children);
         
         % Module D: Final Calculation Id = max(Net Income - Individual Essentials, 0)
         Id = max(net_income - indiv_essentials, 0);

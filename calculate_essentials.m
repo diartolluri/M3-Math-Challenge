@@ -1,5 +1,5 @@
-function household_essentials = calculate_essentials(persona, cost_data)
-% CALCULATE_ESSENTIALS Estimates total household essential costs via table
+function base_essentials = calculate_essentials(persona, cost_data)
+% CALCULATE_ESSENTIALS Estimates baseline single-adult essential costs via table
 % lookups from empirical cost data.
 %
 % Inputs:
@@ -7,7 +7,7 @@ function household_essentials = calculate_essentials(persona, cost_data)
 %   cost_data : MATLAB table loaded from essential_costs.csv 
 %
 % Output:
-%   household_essentials : Total calculated baseline essential costs for the household.
+%   base_essentials : Baseline essential costs for a single adult.
 
     % Filter the cost_data table to match the persona.Country and persona.Region
     is_cc = strcmpi(string(cost_data.Country), string(persona.Country));
@@ -36,7 +36,8 @@ function household_essentials = calculate_essentials(persona, cost_data)
         Base_Healthcare = Base_Healthcare * 2.5;
     end
     
-    % Compute Total Household Essentials
-    household_essentials = Base_Housing + Base_Food + Base_Transport + Base_Healthcare;
+    % Compute Total Base Essentials for a Single Adult
+    base_essentials = Base_Housing + Base_Food + Base_Transport + Base_Healthcare;
+end
     
 end

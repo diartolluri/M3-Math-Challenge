@@ -89,19 +89,37 @@ function Net_Income = calculate_taxes(persona)
         
         taxable_income = max(Salary - pa, 0);
         
-        % 2. Income Tax Brackets
-        % 20% on first 37,700 of taxable income (which translates to £12,571 to £50,270 when PA is unbroken)
-        % 40% up to 125,140 gross (translates to 125,140 - PA in taxable income)
-        % 45% on gross > 125,140
-        tax20 = 0.20 * min(taxable_income, 37700);
+        % 2. Income Tax Brackets (2024/25)
+        if strcmpi(persona.Region, 'Scotland')
+            % Scotland 2024-25 Income Tax (taxable income ranges)
+            % Starter: 19% on £1 - £2,297
+            % Basic: 20% on £2,298 - £13,991
+            % Intermediate: 21% on £13,992 - £31,092
+            % Higher: 42% on £31,093 - £62,430
+            % Advanced: 45% on £62,431 - £125,140
+            % Top: 48% over £125,140
+            limits = [2297, 13991, 31092, 62430, 125140, inf];
+            rates  = [0.19, 0.20, 0.21, 0.42, 0.45, 0.48];
+        else
+            % Rest of UK (England, Wales, NI) 2024-25 Income Tax
+            % Basic: 20% on £1 - £37,700
+            % Higher: 40% on £37,701 - £125,140
+            % Additional: 45% over £125,140
+            limits = [37700, 125140, inf];
+            rates  = [0.20, 0.40, 0.45];
+        end
         
-        % Higher rate limit is gross 125140, which means 125140 - pa of taxable income.
-        higher_rate_limit = 125140 - pa;
-        tax40 = 0.40 * max(0, min(taxable_income, higher_rate_limit) - 37700);
-        
-        tax45 = 0.45 * max(0, taxable_income - higher_rate_limit);
-        
-        income_tax = tax20 + tax40 + tax45;
+        income_tax = 0;
+        prev_limit = 0;
+        for i = 1:length(rates)
+            if taxable_income > prev_limit
+                taxable_in_bracket = min(taxable_income, limits(i)) - prev_limit;
+                income_tax = income_tax + (taxable_in_bracket * rates(i));
+                prev_limit = limits(i);
+            else
+                break;
+            end
+        end
         
         % 3. National Insurance (Class 1)
         % 0% up to £12,570; 8% between £12,570 and £50,270; 2% above £50,270

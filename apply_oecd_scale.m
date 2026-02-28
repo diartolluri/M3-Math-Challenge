@@ -1,12 +1,13 @@
-function Individual_Essentials = apply_oecd_scale(household_essentials, adults, children)
-% APPLY_OECD_SCALE Converts household costs to individual costs
-% using the OECD-modified equivalence scale factor (EQ).
+function Individual_Essentials = apply_oecd_scale(base_essentials, adults, children)
+% APPLY_OECD_SCALE Converts base single-adult essential costs to an
+% individual's share of total household costs using the OECD-modified scale.
 %
 %   EQ = 1.0 + 0.5 * (adults - 1) + 0.3 * children
-%   Individual_Essentials = household_essentials / EQ
+%   Total_Household = base_essentials * EQ
+%   Individual_Essentials = Total_Household / adults
 %
 % Inputs:
-%   household_essentials : Total household essential costs (numeric)
+%   base_essentials      : Baseline essential costs for a single adult (numeric)
 %   adults               : Number of adults in the household (numeric, min 1)
 %   children             : Number of dependents in the household (numeric)
 %
@@ -20,5 +21,8 @@ function Individual_Essentials = apply_oecd_scale(household_essentials, adults, 
     EQ = 1.0 + 0.5 * (adults - 1) + 0.3 * children;
     
     % Calculate individual's portion of the essential costs
-    Individual_Essentials = household_essentials / EQ;
+    % First, scale base costs up to the household level, then divide by adults
+    % assuming adults share expenses equally.
+    Total_Household_Costs = base_essentials * EQ;
+    Individual_Essentials = Total_Household_Costs / adults;
 end
