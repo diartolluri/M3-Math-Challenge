@@ -18,7 +18,7 @@ classdef Gambler < handle
             if nargin < 5
                 chasingCoeff = 1.2; % Default chasing coefficient > 1
             end
-            self.max_bet_per_month
+            self.max_bet_per_month = max_bet_per_month;
             self.Wealth = wealth;
             self.Age = age;
             self.Gender = gender;
