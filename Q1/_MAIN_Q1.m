@@ -4,11 +4,11 @@
 
 function main_Q1()
     % 1. Load the empirical essential costs data
-    if ~exist('essential_costs.csv', 'file')
+    if ~exist('Q1/data/essential_costs.csv', 'file')
         error('MAIN_Q1:MissingFile', 'Could not find essential_costs.csv in the current directory.');
     end
     
-    cost_data = readtable('essential_costs.csv', 'VariableNamingRule', 'preserve');
+    cost_data = readtable('Q1/data/essential_costs.csv', 'VariableNamingRule', 'preserve');
 
     % 2. Define the Demonstration Personas
     personas = struct(...

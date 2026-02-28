@@ -59,10 +59,8 @@ function Net_Income = calculate_taxes(persona)
         
         persistent state_data;
         if isempty(state_data)
-            if exist('us_state_taxes.csv', 'file')
-                state_data = readtable('us_state_taxes.csv', 'VariableNamingRule', 'preserve');
-            elseif exist('tax_rates.csv', 'file')
-                state_data = readtable('tax_rates.csv', 'VariableNamingRule', 'preserve');
+            if exist('Q1/data/tax_rates.csv', 'file')
+                state_data = readtable('Q1/data/tax_rates.csv', 'VariableNamingRule', 'preserve');
             else
                 error('calculate_taxes:MissingData', 'Could not finding state tax data file.');
             end
