@@ -1,4 +1,4 @@
-%% Simple MNIST MLP in MATLAB
+%% Simple MNIST CNN in MATLAB
 
 clear; clc;
 
@@ -12,16 +12,20 @@ imds = imageDatastore(digitDatasetPath, ...
 
 [imdsTrain, imdsTest] = splitEachLabel(imds, 0.8, "randomized");
 
-%% 2. Define MLP Architecture
+%% 2. Define CNN Architecture
 
 layers = [
     imageInputLayer([28 28 1], Normalization="rescale-zero-one")
-
-    fullyConnectedLayer(128)
+    
+    convolution2dLayer(3, 16, Padding="same")
+    batchNormalizationLayer
     reluLayer
-
-    fullyConnectedLayer(64)
+    maxPooling2dLayer(2, Stride=2)
+    
+    convolution2dLayer(3, 32, Padding="same")
+    batchNormalizationLayer
     reluLayer
+    maxPooling2dLayer(2, Stride=2)
 
     fullyConnectedLayer(10)
     softmaxLayer
@@ -31,8 +35,10 @@ layers = [
 %% 3. Training Options
 
 options = trainingOptions("adam", ...
-    MaxEpochs=5, ...
+    MaxEpochs=10, ...
     MiniBatchSize=128, ...
+    ValidationData=imdsTest, ...
+    ValidationFrequency=30, ...
     Shuffle="every-epoch", ...
     Plots="training-progress", ...
     Verbose=false);
