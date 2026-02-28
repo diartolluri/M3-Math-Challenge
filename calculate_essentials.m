@@ -39,5 +39,3 @@ function base_essentials = calculate_essentials(persona, cost_data)
     % Compute Total Base Essentials for a Single Adult
     base_essentials = Base_Housing + Base_Food + Base_Transport + Base_Healthcare;
 end
-    
-end
