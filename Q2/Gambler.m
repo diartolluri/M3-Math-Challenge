@@ -103,7 +103,7 @@ classdef Gambler < handle
                         outcome = self.place_bet(bet_amount);
                         total_profit = total_profit + outcome;
                         out = rand();
-                        betting = self.CurrentRiskTolerance > out && total_profit > -max_bet;
+                        betting = self.CurrentRiskTolerance > out && total_profit > (-max_bet/bettingFreq);
                     end
 
                     self.NetProfit = self.NetProfit + total_profit;
