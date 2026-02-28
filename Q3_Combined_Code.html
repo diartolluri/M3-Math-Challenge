@@ -1,0 +1,232 @@
+<html><body style='font-family: Consolas, monospace;'><h1 style='font-family: sans-serif;'>Q3 Project Codebase</h1><h2 style='font-family: sans-serif; margin-top: 30px; padding: 5px; background-color: #f0f0f0;'>gap_dynamics.m</h2><div class="highlight" style="background: #ffffff"><pre style="line-height: 125%;"><span></span><code><span style="color: #0000ff">function</span> dDelta = gap_dynamics(t, Delta, q, a, w, b, r, id)
+    <span style="color: #008000">% gap_dynamics defines the differential equations for the financial gaps.</span>
+    <span style="color: #008000">% State variables:</span>
+    <span style="color: #008000">% Delta(1) = Delta_A (Savings gap)</span>
+    <span style="color: #008000">% Delta(2) = Delta_W (Wealth gap)</span>
+    <span style="color: #008000">% Delta(3) = Delta_B (Debt gap)</span>
+    
+    dDelta = zeros(3, 1);
+    
+    <span style="color: #008000">% Savings gap grows from cash drained now</span>
+    dDelta(1) = a * q;
+    
+    <span style="color: #008000">% Wealth gap grows from missed investing plus lost compounding</span>
+    dDelta(2) = r * Delta(2) + w * q;
+    
+    <span style="color: #008000">% Debt gap grows from new borrowing plus interest</span>
+    dDelta(3) = id * Delta(3) + b * q;
+<span style="color: #0000ff">end</span>
+</code></pre></div>
+<h2 style='font-family: sans-serif; margin-top: 30px; padding: 5px; background-color: #f0f0f0;'>calculate_RBM.m</h2><div class="highlight" style="background: #ffffff"><pre style="line-height: 125%;"><span></span><code><span style="color: #0000ff">function</span> RBM = calculate_RBM(months, g_monthly, s_monthly, c_monthly, a, w, b, r_annual, id_annual, M, C_rep)
+    <span style="color: #008000">% calculate_RBM calculates the Recovery Burden Months (RBM)</span>
+    <span style="color: #008000">% </span>
+    <span style="color: #008000">% Inputs:</span>
+    <span style="color: #008000">%   months     - simulation time in months</span>
+    <span style="color: #008000">%   g_monthly  - gambling loss</span>
+    <span style="color: #008000">%   s_monthly  - stress/leakage cost</span>
+    <span style="color: #008000">%   c_monthly  - safe cushion</span>
+    <span style="color: #008000">%   a, w, b    - shares allocated to savings, wealth, debt (a+w+b=1)</span>
+    <span style="color: #008000">%   r_annual   - annual investment return</span>
+    <span style="color: #008000">%   id_annual  - annual debt interest rate</span>
+    <span style="color: #008000">%   M          - milestone-delay cost</span>
+    <span style="color: #008000">%   C_rep      - normal monthly saving capacity</span>
+    <span style="color: #008000">%</span>
+    <span style="color: #008000">% Output:</span>
+    <span style="color: #008000">%   RBM - Recovery Burden Months</span>
+    
+    <span style="color: #008000">% Monthly rates</span>
+    r = r_annual / 12;
+    id = id_annual / 12;
+    
+    <span style="color: #008000">% Harmless shortfall</span>
+    q = max(0, g_monthly + s_monthly - c_monthly);
+    
+    <span style="color: #008000">% ODE parameters</span>
+    tspan = [0, months];
+    y0 = [0; 0; 0]; <span style="color: #008000">% Initial gaps: A, W, B</span>
+    
+    <span style="color: #008000">% Run ODE solver</span>
+    [~, y] = ode45(@(t, y) gap_dynamics(t, y, q, a, w, b, r, id), tspan, y0);
+    
+    <span style="color: #008000">% Final values</span>
+    delta_A = y(<span style="color: #0000ff">end</span>, 1);
+    delta_W = y(<span style="color: #0000ff">end</span>, 2);
+    delta_B = y(<span style="color: #0000ff">end</span>, 3);
+    
+    <span style="color: #008000">% Total repair deficit</span>
+    R = delta_A + delta_W + delta_B + M;
+    
+    <span style="color: #008000">% Recovery Burden Months</span>
+    RBM = R / C_rep;
+<span style="color: #0000ff">end</span>
+</code></pre></div>
+<h2 style='font-family: sans-serif; margin-top: 30px; padding: 5px; background-color: #f0f0f0;'>MAIN_Q3.m</h2><div class="highlight" style="background: #ffffff"><pre style="line-height: 125%;"><span></span><code><span style="color: #008000">% Quantifying the Financial Impact of Online Gambling</span>
+<span style="color: #008000">% Differential dynamics model based on the &quot;Recovery Burden Months&quot; metric</span>
+
+<span style="color: #008000">% Define baseline parameters for an individual over time</span>
+simulation_months = 60;   <span style="color: #008000">% 5 years</span>
+
+<span style="color: #008000">% The monthly harmful shortfall is q(t) = max(0, g(t) + s(t) - c(t))</span>
+g_monthly = 200;  <span style="color: #008000">% Gambling loss per month ($)</span>
+s_monthly = 50;   <span style="color: #008000">% Stress/leakage cost per month ($)</span>
+c_monthly = 100;  <span style="color: #008000">% Safe cushion ($)</span>
+
+<span style="color: #008000">% Allocation of shortfall across savings, investing, and debt (must sum to 1)</span>
+a = 0.5; <span style="color: #008000">% 50% from liquid savings</span>
+w = 0.3; <span style="color: #008000">% 30% from missed investing</span>
+b = 0.2; <span style="color: #008000">% 20% to new debt</span>
+
+<span style="color: #008000">% Interest/Return rates (annual)</span>
+r_annual  = 0.07; <span style="color: #008000">% 7% expected annual investment return</span>
+id_annual = 0.22; <span style="color: #008000">% 22% expected annual debt interest rate</span>
+
+<span style="color: #008000">% Milestone delay cost (e.g. extra rent, delayed emergency fund)</span>
+M = 1000; <span style="color: #008000">% ($)</span>
+
+<span style="color: #008000">% Normal monthly saving capacity </span>
+C_rep = 500; <span style="color: #008000">% ($)</span>
+
+<span style="color: #008000">% Calculate the Recovery Burden Months</span>
+<span style="color: #008000">% This runs the counterfactual differential tracking the gaps over time.</span>
+RBM = calculate_RBM(simulation_months, g_monthly, s_monthly, c_monthly, a, w, b, r_annual, id_annual, M, C_rep);
+
+<span style="color: #008000">% Output exactly what was asked in &quot;One simple output&quot;</span>
+fprintf(<span style="color: #a31515">&#39;%.2f\n&#39;</span>, RBM);
+</code></pre></div>
+<h2 style='font-family: sans-serif; margin-top: 30px; padding: 5px; background-color: #f0f0f0;'>sensitivity_analysis_Q3.m</h2><div class="highlight" style="background: #ffffff"><pre style="line-height: 125%;"><span></span><code><span style="color: #008000">% sensitivity_analysis_Q3.m</span>
+<span style="color: #008000">% Performs sensitivity analysis on the Recovery Burden Months (RBM) metric</span>
+<span style="color: #008000">% by varying key parameters and visualizing their impact using a Tornado diagram.</span>
+
+<span style="color: #008000">%% Baseline Parameters</span>
+base_months = 60;
+base_g_monthly = 200;
+base_s_monthly = 50;
+base_c_monthly = 100;
+base_a = 0.5;
+base_w = 0.3;
+base_b = 0.2;
+base_r_annual = 0.07;
+base_id_annual = 0.22;
+base_M = 1000;
+base_C_rep = 500;
+
+<span style="color: #008000">% Calculate baseline RBM</span>
+baseline_RBM = calculate_RBM(base_months, base_g_monthly, base_s_monthly, <span style="color: #0000ff">...</span>
+                             base_c_monthly, base_a, base_w, base_b, <span style="color: #0000ff">...</span>
+                             base_r_annual, base_id_annual, base_M, base_C_rep);
+
+<span style="color: #008000">%% Sensitivity Analysis Setup</span>
+<span style="color: #008000">% We will vary each continuous parameter by +/- 20%</span>
+variation = 0.20;
+
+<span style="color: #008000">% Parameters to test</span>
+param_names = {<span style="color: #a31515">&#39;g_monthly&#39;</span>, <span style="color: #a31515">&#39;s_monthly&#39;</span>, <span style="color: #a31515">&#39;c_monthly&#39;</span>, <span style="color: #0000ff">...</span>
+               <span style="color: #a31515">&#39;r_annual&#39;</span>, <span style="color: #a31515">&#39;id_annual&#39;</span>, <span style="color: #a31515">&#39;M&#39;</span>, <span style="color: #a31515">&#39;C_rep&#39;</span>};
+           
+param_labels = {<span style="color: #a31515">&#39;Gambling Loss (g\_monthly)&#39;</span>, <span style="color: #0000ff">...</span>
+                <span style="color: #a31515">&#39;Stress/Leakage (s\_monthly)&#39;</span>, <span style="color: #0000ff">...</span>
+                <span style="color: #a31515">&#39;Safe Cushion (c\_monthly)&#39;</span>, <span style="color: #0000ff">...</span>
+                <span style="color: #a31515">&#39;Investment Return (r\_annual)&#39;</span>, <span style="color: #0000ff">...</span>
+                <span style="color: #a31515">&#39;Debt Interest Rate (id\_annual)&#39;</span>, <span style="color: #0000ff">...</span>
+                <span style="color: #a31515">&#39;Milestone Delay Cost (M)&#39;</span>, <span style="color: #0000ff">...</span>
+                <span style="color: #a31515">&#39;Monthly Saving Capacity (C\_rep)&#39;</span>};
+
+num_params = length(param_names);
+
+<span style="color: #008000">% Store results</span>
+rbm_low = zeros(num_params, 1);
+rbm_high = zeros(num_params, 1);
+sensitivity_spread = zeros(num_params, 1);
+
+<span style="color: #0000ff">for</span> i = 1:num_params
+    <span style="color: #008000">% Reset to baseline</span>
+    p = struct(<span style="color: #a31515">&#39;g_monthly&#39;</span>, base_g_monthly, <span style="color: #a31515">&#39;s_monthly&#39;</span>, base_s_monthly, <span style="color: #0000ff">...</span>
+               <span style="color: #a31515">&#39;c_monthly&#39;</span>, base_c_monthly, <span style="color: #a31515">&#39;r_annual&#39;</span>, base_r_annual, <span style="color: #0000ff">...</span>
+               <span style="color: #a31515">&#39;id_annual&#39;</span>, base_id_annual, <span style="color: #a31515">&#39;M&#39;</span>, base_M, <span style="color: #a31515">&#39;C_rep&#39;</span>, base_C_rep);
+           
+    <span style="color: #008000">% Current parameter baseline value</span>
+    base_val = p.(param_names{i});
+    
+    <span style="color: #008000">% Low case (-20%)</span>
+    p.(param_names{i}) = base_val * (1 - variation);
+    rbm_low(i) = calculate_RBM(base_months, p.g_monthly, p.s_monthly, <span style="color: #0000ff">...</span>
+                               p.c_monthly, base_a, base_w, base_b, <span style="color: #0000ff">...</span>
+                               p.r_annual, p.id_annual, p.M, p.C_rep);
+                           
+    <span style="color: #008000">% High case (+20%)</span>
+    p.(param_names{i}) = base_val * (1 + variation);
+    rbm_high(i) = calculate_RBM(base_months, p.g_monthly, p.s_monthly, <span style="color: #0000ff">...</span>
+                                p.c_monthly, base_a, base_w, base_b, <span style="color: #0000ff">...</span>
+                                p.r_annual, p.id_annual, p.M, p.C_rep);
+                            
+    <span style="color: #008000">% Calculate spread (absolute difference from baseline)</span>
+    <span style="color: #008000">% We use the actual range for the tornado diagram sorting</span>
+    sensitivity_spread(i) = abs(rbm_high(i) - rbm_low(i));
+<span style="color: #0000ff">end</span>
+
+<span style="color: #008000">%% Sort Parameters by Importance (Spread)</span>
+[sorted_spread, sort_idx] = sort(sensitivity_spread, <span style="color: #a31515">&#39;ascend&#39;</span>); <span style="color: #008000">% Ascend for horizontal bar chart (widest at top)</span>
+
+sorted_labels = param_labels(sort_idx);
+sorted_low = rbm_low(sort_idx);
+sorted_high = rbm_high(sort_idx);
+
+<span style="color: #008000">%% Display Ranking Textually</span>
+fprintf(<span style="color: #a31515">&#39;Parameter Sensitivity Ranking (from MOST to LEAST important):\n&#39;</span>);
+fprintf(<span style="color: #a31515">&#39;------------------------------------------------------------\n&#39;</span>);
+<span style="color: #008000">% Print in descending order</span>
+<span style="color: #0000ff">for</span> i = num_params:-1:1
+    idx = sort_idx(i);
+    fprintf(<span style="color: #a31515">&#39;%d. %-35s - Impact Spread: %6.2f months\n&#39;</span>, <span style="color: #0000ff">...</span>
+        num_params - i + 1, param_labels{idx}, sensitivity_spread(idx));
+<span style="color: #0000ff">end</span>
+
+<span style="color: #008000">%% Plot Tornado Diagram</span>
+figure(<span style="color: #a31515">&#39;Name&#39;</span>, <span style="color: #a31515">&#39;Sensitivity Analysis: Tornado Diagram&#39;</span>, <span style="color: #a31515">&#39;Position&#39;</span>, [100, 100, 800, 500]);
+hold <span style="color: #a31515">on</span>;
+
+<span style="color: #008000">% Create the bars</span>
+<span style="color: #0000ff">for</span> i = 1:num_params
+    <span style="color: #008000">% Instead of traditional barh, using stacked bars where </span>
+    <span style="color: #008000">% deviations from baseline are plotted right and left.</span>
+    change_high = sorted_high(i) - baseline_RBM;
+    change_low = sorted_low(i) - baseline_RBM;
+    
+    <span style="color: #008000">% High value (+20%)</span>
+    <span style="color: #0000ff">if</span> change_high &gt;= 0
+        h1 = barh(i, change_high, <span style="color: #a31515">&#39;FaceColor&#39;</span>, [0.8 0.2 0.2], <span style="color: #a31515">&#39;EdgeColor&#39;</span>, <span style="color: #a31515">&#39;k&#39;</span>, <span style="color: #a31515">&#39;BaseValue&#39;</span>, 0, <span style="color: #a31515">&#39;BarWidth&#39;</span>, 0.6);
+    <span style="color: #0000ff">else</span>
+        h1 = barh(i, change_high, <span style="color: #a31515">&#39;FaceColor&#39;</span>, [0.2 0.6 0.2], <span style="color: #a31515">&#39;EdgeColor&#39;</span>, <span style="color: #a31515">&#39;k&#39;</span>, <span style="color: #a31515">&#39;BaseValue&#39;</span>, 0, <span style="color: #a31515">&#39;BarWidth&#39;</span>, 0.6);
+    <span style="color: #0000ff">end</span>
+    
+    <span style="color: #008000">% Low value (-20%)</span>
+    <span style="color: #0000ff">if</span> change_low &lt; 0
+        h2 = barh(i, change_low, <span style="color: #a31515">&#39;FaceColor&#39;</span>, [0.2 0.6 0.2], <span style="color: #a31515">&#39;EdgeColor&#39;</span>, <span style="color: #a31515">&#39;k&#39;</span>, <span style="color: #a31515">&#39;BaseValue&#39;</span>, 0, <span style="color: #a31515">&#39;BarWidth&#39;</span>, 0.6);
+    <span style="color: #0000ff">else</span>
+        h2 = barh(i, change_low, <span style="color: #a31515">&#39;FaceColor&#39;</span>, [0.8 0.2 0.2], <span style="color: #a31515">&#39;EdgeColor&#39;</span>, <span style="color: #a31515">&#39;k&#39;</span>, <span style="color: #a31515">&#39;BaseValue&#39;</span>, 0, <span style="color: #a31515">&#39;BarWidth&#39;</span>, 0.6);
+    <span style="color: #0000ff">end</span>
+<span style="color: #0000ff">end</span>
+
+<span style="color: #008000">% Plot a vertical line at the baseline RBM change (which is 0)</span>
+plot([0 0], [0 num_params+1], <span style="color: #a31515">&#39;k--&#39;</span>, <span style="color: #a31515">&#39;LineWidth&#39;</span>, 1.5);
+
+<span style="color: #008000">% Formatting</span>
+yticks(1:num_params);
+yticklabels(sorted_labels);
+xlabel(<span style="color: #a31515">&#39;Change in Recovery Burden Months (RBM) from Baseline&#39;</span>);
+title(sprintf(<span style="color: #a31515">&#39;Tornado Diagram of RBM Sensitivity (\\pm 20%% parameter variation)\nBaseline RBM = %.2f months&#39;</span>, baseline_RBM));
+grid <span style="color: #a31515">on</span>;
+
+<span style="color: #008000">% Adjust limits</span>
+ylim([0.5 num_params+0.5]);
+ax = gca;
+ax.XAxis.Exponent = 0; <span style="color: #008000">% Prevent scientific notation</span>
+
+<span style="color: #008000">% Create legend entries</span>
+h_red = plot(NaN,NaN,<span style="color: #a31515">&#39;s&#39;</span>,<span style="color: #a31515">&#39;MarkerFaceColor&#39;</span>,[0.8 0.2 0.2],<span style="color: #a31515">&#39;MarkerEdgeColor&#39;</span>,<span style="color: #a31515">&#39;k&#39;</span>, <span style="color: #a31515">&#39;MarkerSize&#39;</span>, 10);
+h_green = plot(NaN,NaN,<span style="color: #a31515">&#39;s&#39;</span>,<span style="color: #a31515">&#39;MarkerFaceColor&#39;</span>,[0.2 0.6 0.2],<span style="color: #a31515">&#39;MarkerEdgeColor&#39;</span>,<span style="color: #a31515">&#39;k&#39;</span>, <span style="color: #a31515">&#39;MarkerSize&#39;</span>, 10);
+legend([h_red, h_green], {<span style="color: #a31515">&#39;Increases RBM (Worse)&#39;</span>, <span style="color: #a31515">&#39;Decreases RBM (Better)&#39;</span>}, <span style="color: #a31515">&#39;Location&#39;</span>, <span style="color: #a31515">&#39;best&#39;</span>);
+
+hold <span style="color: #a31515">off</span>;
+</code></pre></div>
+</body></html>

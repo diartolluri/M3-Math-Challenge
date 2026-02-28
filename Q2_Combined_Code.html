@@ -1,0 +1,345 @@
+<html><body style='font-family: Consolas, monospace;'><h1 style='font-family: sans-serif;'>Q2 Project Codebase</h1><h2 style='font-family: sans-serif; margin-top: 30px; padding: 5px; background-color: #f0f0f0;'>Gambler.m</h2><div class="highlight" style="background: #ffffff"><pre style="line-height: 125%;"><span></span><code><span style="color: #0000ff">classdef</span> Gambler &lt; handle
+    <span style="color: #0000ff">properties</span>
+        Age
+        Wealth
+        Gender
+        SavedIncome
+        BaseRiskTolerance
+        CurrentRiskTolerance
+        ChasingCoefficient
+        NetProfit
+        BetHistory
+        ProfitHistory
+        max_bet_per_month
+    <span style="color: #0000ff">end</span>
+    
+    <span style="color: #0000ff">methods</span>
+        <span style="color: #0000ff">function</span> self = Gambler(age, gender, wealth, savedIncome, chasingCoeff, max_bet_per_month)
+            <span style="color: #0000ff">if</span> nargin &lt; 5
+                chasingCoeff = 1.2; <span style="color: #008000">% Default chasing coefficient &gt; 1</span>
+            <span style="color: #0000ff">end</span>
+            self.max_bet_per_month = max_bet_per_month;
+            self.Wealth = wealth;
+            self.Age = age;
+            self.Gender = gender;
+            self.SavedIncome = savedIncome;
+            self.ChasingCoefficient = chasingCoeff;
+            self.NetProfit = 0;
+            self.BetHistory = [];
+            self.ProfitHistory = [];
+            
+            <span style="color: #008000">% Formula provided: 3.068 + 0.987(Age) - 0.037(Age^2)</span>
+            score = 54.0832 + 1.5402 * self.Age -0.0329 * (self.Age^2);
+            <span style="color: #008000">% Convert the resulting score to a probability / risk measurement [0, 1]</span>
+            <span style="color: #0000ff">if</span> self.Gender == <span style="color: #a31515">&quot;Male&quot;</span>
+                score = 53.5213 + 1.9007 * self.Age -0.0405 * (self.Age^2);
+            <span style="color: #0000ff">end</span>
+            score = score / 100;
+            self.BaseRiskTolerance = max(0.01, min(1, score)); <span style="color: #008000">% minimum floor of 1%</span>
+            self.CurrentRiskTolerance = self.BaseRiskTolerance;
+        <span style="color: #0000ff">end</span>
+
+        <span style="color: #0000ff">function</span> [risk_level, win_prob, payout_multiplier] = determine_bet_profile(self)
+            <span style="color: #008000">% Incorporate risk tolerance and disposable income into a risk profile</span>
+            <span style="color: #008000">% Average US disposable income ~40,000 for relative scaling</span>
+            income_factor = max(2.0, min(0.5, self.SavedIncome / 40000));
+            effective_risk = self.CurrentRiskTolerance * income_factor;
+            
+            <span style="color: #008000">% Map to defined profiles based on empirical thresholds</span>
+            <span style="color: #0000ff">if</span> effective_risk &lt; 0.08
+                <span style="color: #008000">% Low Risk (Straight Bets)</span>
+                risk_level = <span style="color: #a31515">&quot;Low&quot;</span>;
+                win_prob = 0.50;
+                payout_multiplier = 0.909;
+            <span style="color: #0000ff">elseif</span> effective_risk &lt; 0.15
+                <span style="color: #008000">% Average Risk (Mixed Portfolio)</span>
+                risk_level = <span style="color: #a31515">&quot;Average&quot;</span>;
+                win_prob = 0.45;
+                payout_multiplier = 1.0;
+            <span style="color: #0000ff">else</span>
+                <span style="color: #008000">% High Risk (Parlays)</span>
+                risk_level = <span style="color: #a31515">&quot;High&quot;</span>;
+                win_prob = 0.10;
+                payout_multiplier = 7.0;
+            <span style="color: #0000ff">end</span>
+        <span style="color: #0000ff">end</span>
+
+        <span style="color: #0000ff">function</span> profit = place_bet(self, bet_amount)
+            [~, win_prob, payout_multiplier] = self.determine_bet_profile();
+            
+            <span style="color: #008000">% Simulate outcome</span>
+            is_win = rand() &lt; win_prob;
+            
+            <span style="color: #0000ff">if</span> is_win
+                <span style="color: #008000">% Gambler wins</span>
+                profit = bet_amount * payout_multiplier;
+                self.NetProfit = self.NetProfit + profit;
+                
+                <span style="color: #008000">% Reset risk tolerance back to original value (Markov Chain restart)</span>
+                self.CurrentRiskTolerance = self.BaseRiskTolerance;
+            <span style="color: #0000ff">else</span>
+                <span style="color: #008000">% Gambler loses</span>
+                profit = -bet_amount;
+                self.NetProfit = self.NetProfit + profit;
+                
+                <span style="color: #008000">% Chase losses: multiply risk tolerance by a chasing coefficient &gt; 1</span>
+                self.CurrentRiskTolerance = min(1.0, self.CurrentRiskTolerance * self.ChasingCoefficient);
+            <span style="color: #0000ff">end</span>
+        <span style="color: #0000ff">end</span>
+
+        <span style="color: #0000ff">function</span> simulate_year(self, bettingFreq)
+            self.BetHistory = zeros(12, 1);
+            self.ProfitHistory = zeros(12, 1);
+
+            <span style="color: #0000ff">for</span> i = 1:12
+                self.Wealth = self.SavedIncome + self.Wealth;
+
+                <span style="color: #0000ff">for</span> f = 1:bettingFreq
+                    total_profit = 0;
+                    betting = self.Wealth &gt; 0;
+                    base_bet_amount = 0.001 * self.SavedIncome;
+                    max_bet = self.SavedIncome * 0.05;
+
+                    <span style="color: #0000ff">while</span> betting
+                        bet_amount = base_bet_amount * (self.CurrentRiskTolerance / self.BaseRiskTolerance);
+                        bet_amount = min(bet_amount, max_bet);
+                        outcome = self.place_bet(bet_amount);
+                        total_profit = total_profit + outcome;
+                        self.Wealth = self.Wealth + outcome;
+                        out = rand();
+                        cond = true;
+                        <span style="color: #0000ff">if</span> self.max_bet_per_month
+                            cond = total_profit &gt; (-max_bet);
+                        <span style="color: #0000ff">else</span>
+                            cond = total_profit &gt; (-max_bet/bettingFreq);
+                        <span style="color: #0000ff">end</span>
+                        
+                        betting = self.CurrentRiskTolerance &gt; out &amp;&amp; cond &amp;&amp; self.Wealth &gt; 0;
+                    <span style="color: #0000ff">end</span>
+
+                    self.NetProfit = self.NetProfit + total_profit;
+                <span style="color: #0000ff">end</span>
+                <span style="color: #008000">% Bet size scales with risk tolerance, capped at 5% of disposable income</span>
+                
+                
+                
+                self.ProfitHistory(i) = self.NetProfit;
+            <span style="color: #0000ff">end</span>
+        <span style="color: #0000ff">end</span>
+    <span style="color: #0000ff">end</span>
+<span style="color: #0000ff">end</span>
+</code></pre></div>
+<h2 style='font-family: sans-serif; margin-top: 30px; padding: 5px; background-color: #f0f0f0;'>AgeRisk.m</h2><div class="highlight" style="background: #ffffff"><pre style="line-height: 125%;"><span></span><code><span style="color: #008000">% Enter midpoints of age bins</span>
+age = [10.5 12.5 14.5 16.5 18.5 20.5 22.5 24.5 26.5 28.5];
+
+<span style="color: #008000">% Enter the corresponding Table 3 BART means here</span>
+bart_mean_f = [ 65.73, 68.66, 70.00, 71.58, 70.68, 72.36, 70.89, 71.34, 72.18, 71.68 ];   <span style="color: #008000">% &lt;-- paste actual percentages</span>
+bart_mean = [68.70, 71.37, 71.93, 74.20, 75.70, 75.52, 75.85, 74.27, 75.53, 75.41];
+<span style="color: #008000">% Fit quadratic</span>
+p = polyfit(age, bart_mean, 2);
+
+<span style="color: #008000">% Quadratic equation:</span>
+<span style="color: #008000">% y = p(1)*Age^2 + p(2)*Age + p(3)</span>
+
+disp(p)
+</code></pre></div>
+<h2 style='font-family: sans-serif; margin-top: 30px; padding: 5px; background-color: #f0f0f0;'>MAIN_Q2.m</h2><div class="highlight" style="background: #ffffff"><pre style="line-height: 125%;"><span></span><code><span style="color: #008000">% MAIN_Q2.m</span>
+<span style="color: #008000">% Agentic Markov Chain Simulation for Online Gambling Losses</span>
+clear; clc; close <span style="color: #a31515">all</span>;
+
+<span style="color: #008000">% We define three different gamblers to simulate based on demographics</span>
+<span style="color: #008000">% Gambler(Age, Gender, Country, DisposableIncome, ChasingCoefficient)</span>
+
+<span style="color: #008000">% Simulation configuration</span>
+<span style="color: #008000">% Assume placing a bet every other day on average over one year (180 bets)</span>
+
+bet_count = 5; <span style="color: #008000">% number of bets per month</span>
+num_simulations = 100; <span style="color: #008000">% Number of simulations to average over</span>
+max_bet_per_month = false; <span style="color: #008000">% if false people will be willing to be only 0.05(savedIncome/bet_count) else 0.05(savedIncome)</span>
+rng(42); <span style="color: #008000">% Set random seed for reproducibility</span>
+
+<span style="color: #008000">% Preallocate arrays for average profit history</span>
+g1_avg_profit_history = zeros(12, 1);
+g2_avg_profit_history = zeros(12, 1);
+g3_avg_profit_history = zeros(12, 1);
+
+g1_avg_net_profit = 0;
+g2_avg_net_profit = 0;
+g3_avg_net_profit = 0;
+
+<span style="color: #008000">% Run the year-long simulation multiple times for each agent</span>
+<span style="color: #0000ff">for</span> i = 1:num_simulations
+    <span style="color: #008000">% Group 1: Young Adult, high base risk tolerance, lower disposable income</span>
+    g1 = Gambler(22, <span style="color: #a31515">&quot;Male&quot;</span>, 0, 35000, 0.9, max_bet_per_month);
+    
+    <span style="color: #008000">% Group 2: Middle Aged, lower base risk tolerance, higher disposable income</span>
+    g2 = Gambler(100, <span style="color: #a31515">&quot;Female&quot;</span>, 100000, 100000, 1.5, max_bet_per_month);
+    
+    <span style="color: #008000">% Group 3: Very Young Adult, high base risk tolerance, very low disposable income</span>
+    g3 = Gambler(19, <span style="color: #a31515">&quot;Male&quot;</span>, 0, 2000, 1.01, max_bet_per_month);
+    
+    g1.simulate_year(bet_count);
+    g2.simulate_year(bet_count);
+    g3.simulate_year(bet_count);
+    
+    g1_avg_profit_history = g1_avg_profit_history + g1.ProfitHistory;
+    g2_avg_profit_history = g2_avg_profit_history + g2.ProfitHistory;
+    g3_avg_profit_history = g3_avg_profit_history + g3.ProfitHistory;
+    
+    g1_avg_net_profit = g1_avg_net_profit + g1.NetProfit;
+    g2_avg_net_profit = g2_avg_net_profit + g2.NetProfit;
+    g3_avg_net_profit = g3_avg_net_profit + g3.NetProfit;
+<span style="color: #0000ff">end</span>
+
+<span style="color: #008000">% Calculate averages</span>
+g1_avg_profit_history = g1_avg_profit_history / num_simulations;
+g2_avg_profit_history = g2_avg_profit_history / num_simulations;
+g3_avg_profit_history = g3_avg_profit_history / num_simulations;
+
+g1_avg_net_profit = g1_avg_net_profit / num_simulations;
+g2_avg_net_profit = g2_avg_net_profit / num_simulations;
+g3_avg_net_profit = g3_avg_net_profit / num_simulations;
+
+<span style="color: #008000">% ---------------------------------------------------------</span>
+<span style="color: #008000">% Plot the average cumulative profit/loss history</span>
+<span style="color: #008000">% ---------------------------------------------------------</span>
+figure(<span style="color: #a31515">&#39;Name&#39;</span>, <span style="color: #a31515">&#39;Yearly Sports Betting Simulation (Averaged)&#39;</span>, <span style="color: #a31515">&#39;Color&#39;</span>, <span style="color: #a31515">&#39;w&#39;</span>);
+hold <span style="color: #a31515">on</span>;
+plot(1:12, g1_avg_profit_history, <span style="color: #a31515">&#39;LineWidth&#39;</span>, 2, <span style="color: #a31515">&#39;DisplayName&#39;</span>, <span style="color: #a31515">&#39;Agent 1: 22yo Male ($35k Income)&#39;</span>);
+plot(1:12, g2_avg_profit_history, <span style="color: #a31515">&#39;LineWidth&#39;</span>, 2, <span style="color: #a31515">&#39;DisplayName&#39;</span>, <span style="color: #a31515">&#39;Agent 2: 45yo Female ($65k Income)&#39;</span>);
+plot(1:12, g3_avg_profit_history, <span style="color: #a31515">&#39;LineWidth&#39;</span>, 2, <span style="color: #a31515">&#39;DisplayName&#39;</span>, <span style="color: #a31515">&#39;Agent 3: 19yo Male ($20k Income)&#39;</span>);
+hold <span style="color: #a31515">off</span>;
+
+title(sprintf(<span style="color: #a31515">&#39;Average Cumulative Profit/Loss Over One Year (%d Simulations)&#39;</span>, num_simulations));
+xlabel(<span style="color: #a31515">&#39;Months&#39;</span>);
+ylabel(<span style="color: #a31515">&#39;Average Cumulative Profit (USD)&#39;</span>);
+legend(<span style="color: #a31515">&#39;Location&#39;</span>, <span style="color: #a31515">&#39;best&#39;</span>);
+grid <span style="color: #a31515">on</span>;
+
+<span style="color: #008000">% ---------------------------------------------------------</span>
+<span style="color: #008000">% Display end-of-year summaries</span>
+<span style="color: #008000">% ---------------------------------------------------------</span>
+fprintf(<span style="color: #a31515">&#39;--- Average Simulation Results (%d Simulations) ---\n&#39;</span>, num_simulations);
+fprintf(<span style="color: #a31515">&#39;Agent 1 (22yo): Average Net Profit = $%.2f, Base Risk = %.2f%%\n&#39;</span>, g1_avg_net_profit, g1.BaseRiskTolerance * 100);
+fprintf(<span style="color: #a31515">&#39;Agent 2 (45yo): Average Net Profit = $%.2f, Base Risk = %.2f%%\n&#39;</span>, g2_avg_net_profit, g2.BaseRiskTolerance * 100);
+fprintf(<span style="color: #a31515">&#39;Agent 3 (19yo): Average Net Profit = $%.2f, Base Risk = %.2f%%\n&#39;</span>, g3_avg_net_profit, g3.BaseRiskTolerance * 100);
+</code></pre></div>
+<h2 style='font-family: sans-serif; margin-top: 30px; padding: 5px; background-color: #f0f0f0;'>sensitivity_analysis_Q2.m</h2><div class="highlight" style="background: #ffffff"><pre style="line-height: 125%;"><span></span><code><span style="color: #008000">% sensitivity_analysis_Q2.m</span>
+<span style="color: #008000">% One-At-A-Time (OAT) Sensitivity Analysis for Gambler Simulation</span>
+
+clear; clc; close <span style="color: #a31515">all</span>;
+
+num_simulations = 500; <span style="color: #008000">% High enough for stable averages without taking too long</span>
+
+<span style="color: #008000">% --- Baseline values ---</span>
+base_age = 25;
+base_income = 40000;
+base_chase = 1.1;
+base_bet_count = 5;
+
+<span style="color: #008000">% --- Parameter ranges [low, high] ---</span>
+<span style="color: #008000">% We define sensible low and high ranges for each parameter to see the effect </span>
+<span style="color: #008000">% of changing each parameter from its baseline.</span>
+range_age = [18, 45];
+range_income = [20000, 60000];
+range_chase = [0.9, 1.3];
+range_bet = [2, 10];
+
+fprintf(<span style="color: #a31515">&#39;Running sensitivity analysis (%d simulations per scenario)...\n&#39;</span>, num_simulations);
+
+<span style="color: #008000">% --- Calculate Baseline ---</span>
+fprintf(<span style="color: #a31515">&#39;Calculating baseline...\n&#39;</span>);
+base_profit = run_sim_q2(base_age, base_income, base_chase, base_bet_count, num_simulations);
+fprintf(<span style="color: #a31515">&#39;Baseline Average Net Profit: $%.2f\n&#39;</span>, base_profit);
+
+<span style="color: #008000">% --- Evaluate extremes for Age ---</span>
+fprintf(<span style="color: #a31515">&#39;Evaluating Age = [%d, %d]...\n&#39;</span>, range_age(1), range_age(2));
+prof_age_low = run_sim_q2(range_age(1), base_income, base_chase, base_bet_count, num_simulations);
+prof_age_high = run_sim_q2(range_age(2), base_income, base_chase, base_bet_count, num_simulations);
+
+<span style="color: #008000">% --- Evaluate extremes for Income ---</span>
+fprintf(<span style="color: #a31515">&#39;Evaluating Saved Income = [$%d, $%d]...\n&#39;</span>, range_income(1), range_income(2));
+prof_inc_low = run_sim_q2(base_age, range_income(1), base_chase, base_bet_count, num_simulations);
+prof_inc_high = run_sim_q2(base_age, range_income(2), base_chase, base_bet_count, num_simulations);
+
+<span style="color: #008000">% --- Evaluate extremes for Chasing Coefficient ---</span>
+fprintf(<span style="color: #a31515">&#39;Evaluating Chasing Coefficient = [%.2f, %.2f]...\n&#39;</span>, range_chase(1), range_chase(2));
+prof_chase_low = run_sim_q2(base_age, base_income, range_chase(1), base_bet_count, num_simulations);
+prof_chase_high = run_sim_q2(base_age, base_income, range_chase(2), base_bet_count, num_simulations);
+
+<span style="color: #008000">% --- Evaluate extremes for Bet Count ---</span>
+fprintf(<span style="color: #a31515">&#39;Evaluating Bet Count = [%d, %d]...\n&#39;</span>, range_bet(1), range_bet(2));
+prof_bet_low = run_sim_q2(base_age, base_income, base_chase, range_bet(1), num_simulations);
+prof_bet_high = run_sim_q2(base_age, base_income, base_chase, range_bet(2), num_simulations);
+
+<span style="color: #008000">% --- Calculate swings and rank ---</span>
+<span style="color: #008000">% Collecting results</span>
+params = {<span style="color: #a31515">&#39;Age (18 - 45)&#39;</span>, <span style="color: #a31515">&#39;Saved Income ($20k - $60k)&#39;</span>, <span style="color: #a31515">&#39;Chasing Coeff (0.9 - 1.3)&#39;</span>, <span style="color: #a31515">&#39;Bet Count (2 - 10)&#39;</span>};
+low_vals = [prof_age_low, prof_inc_low, prof_chase_low, prof_bet_low];
+high_vals = [prof_age_high, prof_inc_high, prof_chase_high, prof_bet_high];
+
+<span style="color: #008000">% A swing is the absolute difference between the parameter&#39;s minimum and maximum outcomes</span>
+swings = abs(high_vals - low_vals);
+
+<span style="color: #008000">% Sort by swing magnitude to rank importance</span>
+[sorted_swings, sort_idx] = sort(swings, <span style="color: #a31515">&#39;ascend&#39;</span>); <span style="color: #008000">% Ascend for barh plot (largest swing at top of chart)</span>
+sorted_params = params(sort_idx);
+sorted_low = low_vals(sort_idx);
+sorted_high = high_vals(sort_idx);
+
+<span style="color: #008000">% Display descending ranking back to console</span>
+fprintf(<span style="color: #a31515">&#39;\n--- Sensitivity Ranking (Most to Least Important) ---\n&#39;</span>);
+<span style="color: #0000ff">for</span> i = length(sorted_swings):-1:1
+    fprintf(<span style="color: #a31515">&#39;%d. %s (Swing: $%.2f)\n&#39;</span>, length(sorted_swings) - i + 1, sorted_params{i}, sorted_swings(i));
+<span style="color: #0000ff">end</span>
+
+<span style="color: #008000">% --- Plot Tornado Chart ---</span>
+figure(<span style="color: #a31515">&#39;Name&#39;</span>, <span style="color: #a31515">&#39;Sensitivity Analysis Tornado Chart&#39;</span>, <span style="color: #a31515">&#39;Color&#39;</span>, <span style="color: #a31515">&#39;w&#39;</span>);
+hold <span style="color: #a31515">on</span>;
+
+<span style="color: #008000">% Draw tornado bars</span>
+<span style="color: #0000ff">for</span> i = 1:length(sorted_swings)
+    <span style="color: #008000">% We compute distance from baseline for both low and high results</span>
+    <span style="color: #008000">% Draw the lower bound block</span>
+    plot([sorted_low(i), base_profit], [i, i], <span style="color: #a31515">&#39;LineWidth&#39;</span>, 20, <span style="color: #a31515">&#39;Color&#39;</span>, [0.8500 0.3250 0.0980]); <span style="color: #008000">% Orange</span>
+    <span style="color: #008000">% Draw the higher bound block</span>
+    plot([base_profit, sorted_high(i)], [i, i], <span style="color: #a31515">&#39;LineWidth&#39;</span>, 20, <span style="color: #a31515">&#39;Color&#39;</span>, [0 0.4470 0.7410]); <span style="color: #008000">% Blue</span>
+<span style="color: #0000ff">end</span>
+
+<span style="color: #008000">% Draw baseline vertical line</span>
+plot([base_profit, base_profit], [0, length(sorted_swings)+1], <span style="color: #a31515">&#39;k--&#39;</span>, <span style="color: #a31515">&#39;LineWidth&#39;</span>, 1.5, <span style="color: #a31515">&#39;HandleVisibility&#39;</span>, <span style="color: #a31515">&#39;off&#39;</span>);
+
+<span style="color: #008000">% Format Chart</span>
+set(gca, <span style="color: #a31515">&#39;YTick&#39;</span>, 1:length(sorted_params), <span style="color: #a31515">&#39;YTickLabel&#39;</span>, sorted_params, <span style="color: #a31515">&#39;FontSize&#39;</span>, 10, <span style="color: #a31515">&#39;XColor&#39;</span>, <span style="color: #a31515">&#39;k&#39;</span>, <span style="color: #a31515">&#39;YColor&#39;</span>, <span style="color: #a31515">&#39;k&#39;</span>);
+ylim([0.5, length(sorted_params) + 0.5]);
+xlabel(<span style="color: #a31515">&#39;Average Annual Net Profit (USD)&#39;</span>, <span style="color: #a31515">&#39;FontSize&#39;</span>, 12, <span style="color: #a31515">&#39;FontWeight&#39;</span>, <span style="color: #a31515">&#39;bold&#39;</span>, <span style="color: #a31515">&#39;Color&#39;</span>, <span style="color: #a31515">&#39;k&#39;</span>);
+title(<span style="color: #a31515">&#39;Sensitivity Analysis of Annual Gambling Profit&#39;</span>, <span style="color: #a31515">&#39;FontSize&#39;</span>, 14, <span style="color: #a31515">&#39;Color&#39;</span>, <span style="color: #a31515">&#39;k&#39;</span>);
+
+<span style="color: #008000">% Add custom legends for colored bars</span>
+<span style="color: #008000">% Mock scatter plots to produce legend entries with correct colors</span>
+h1 = plot(NaN, NaN, <span style="color: #a31515">&#39;LineWidth&#39;</span>, 8, <span style="color: #a31515">&#39;Color&#39;</span>, [0.8500 0.3250 0.0980]);
+h2 = plot(NaN, NaN, <span style="color: #a31515">&#39;LineWidth&#39;</span>, 8, <span style="color: #a31515">&#39;Color&#39;</span>, [0 0.4470 0.7410]);
+legend([h1, h2], {<span style="color: #a31515">&#39;Result of Lower Parameter Bound&#39;</span>, <span style="color: #a31515">&#39;Result of Upper Parameter Bound&#39;</span>}, <span style="color: #a31515">&#39;Location&#39;</span>, <span style="color: #a31515">&#39;best&#39;</span>, <span style="color: #a31515">&#39;Box&#39;</span>, <span style="color: #a31515">&#39;off&#39;</span>);
+
+grid <span style="color: #a31515">on</span>;
+set(gca, <span style="color: #a31515">&#39;GridColor&#39;</span>, <span style="color: #a31515">&#39;w&#39;</span>);
+hold <span style="color: #a31515">off</span>;
+
+<span style="color: #008000">% --- Helper Functions ---</span>
+<span style="color: #0000ff">function</span> avg_profit = run_sim_q2(age, savedIncome, chasingCoeff, bet_count, num_sims)
+    <span style="color: #008000">% To keep results purely deterministic for the analysis and comparisons:</span>
+    rng(42);
+    
+    total_profit = 0;
+    
+    <span style="color: #0000ff">for</span> i = 1:num_sims
+        <span style="color: #008000">% We fix remaining attributes: &quot;US&quot;, &quot;Male&quot;, 0 starting wealth, max_bet_per_month = false</span>
+        g = Gambler(age, <span style="color: #a31515">&quot;Male&quot;</span>, <span style="color: #a31515">&quot;US&quot;</span>, 0, savedIncome, chasingCoeff, false);
+        g.simulate_year(bet_count);
+        total_profit = total_profit + g.NetProfit;
+    <span style="color: #0000ff">end</span>
+    
+    avg_profit = total_profit / num_sims;
+<span style="color: #0000ff">end</span>
+</code></pre></div>
+</body></html>
