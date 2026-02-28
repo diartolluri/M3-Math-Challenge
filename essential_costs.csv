@@ -1,0 +1,8 @@
+Country,Region,Base_Housing_Annual,Base_Food_Annual,Base_Transport_Annual,Base_Healthcare_Annual
+US,TX,12000,4500,5500,2500
+US,CA,18000,5000,5500,3000
+US,NY,20000,5500,5500,3500
+US,FL,14000,4500,5000,4500
+UK,England,11000,3500,4000,2000
+UK,Scotland,10500,3600,4200,2100
+UK,Wales,9500,3400,3800,2800
