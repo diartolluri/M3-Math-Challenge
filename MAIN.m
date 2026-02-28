@@ -49,3 +49,24 @@ YTest = imdsTest.Labels;
 accuracy = mean(YPred == YTest);
 
 fprintf("Test Accuracy: %.2f%%\n", accuracy*100)
+
+%% 6. Visualize Sample Predictions
+idx = randperm(numel(imdsTest.Files), 9);
+figure('Name', 'Sample Predictions', 'NumberTitle', 'off');
+sgtitle('Random Test Samples with Predictions');
+
+for i = 1:9
+    subplot(3,3,i)
+    I = readimage(imdsTest, idx(i));
+    imshow(I)
+    label = YPred(idx(i));
+    actual = YTest(idx(i));
+    
+    if label == actual
+        titleColor = 'g'; % Green for correct
+    else
+        titleColor = 'r'; % Red for incorrect
+    end
+    
+    title(string(label), 'Color', titleColor);
+end
