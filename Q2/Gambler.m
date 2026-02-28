@@ -1,27 +1,106 @@
-classdef Gambler
+classdef Gambler < handle
     properties
-        Age,
-        Gender,
-        Country,
-
+        Age
+        Gender
+        Country
+        DisposableIncome
+        BaseRiskTolerance
+        CurrentRiskTolerance
+        ChasingCoefficient
+        NetProfit
+        BetHistory
+        ProfitHistory
     end
+    
     methods
-        function self = Gambler(age, gender, country)
-            self.Age = gender;
-            self.Gender = age;
+        function self = Gambler(age, gender, country, disposableIncome, chasingCoeff)
+            if nargin < 5
+                chasingCoeff = 1.2; % Default chasing coefficient > 1
+            end
+            self.Age = age;
+            self.Gender = gender;
             self.Country = country;
+            self.DisposableIncome = disposableIncome;
+            self.ChasingCoefficient = chasingCoeff;
+            self.NetProfit = 0;
+            self.BetHistory = [];
+            self.ProfitHistory = [];
+            
+            % Formula provided: 3.068 + 0.987(Age) - 0.037(Age^2)
+            score = 3.068 + 0.987 * self.Age - 0.037 * (self.Age^2);
+            % Convert the resulting score to a probability / risk measurement [0, 1]
+            if score > 1
+                score = score / 100;
+            end
+            self.BaseRiskTolerance = max(0.01, min(1, score)); % minimum floor of 1%
+            self.CurrentRiskTolerance = self.BaseRiskTolerance;
         end
 
-        function freq = calculate_freq(self)
-            freq = 10;
+        function [risk_level, win_prob, payout_multiplier] = determine_bet_profile(self)
+            % Incorporate risk tolerance and disposable income into a risk profile
+            % Average US disposable income ~40,000 for relative scaling
+            income_factor = min(2.0, max(0.5, self.DisposableIncome / 40000));
+            effective_risk = self.CurrentRiskTolerance * income_factor;
+            
+            % Map to defined profiles based on empirical thresholds
+            if effective_risk < 0.08
+                % Low Risk (Straight Bets)
+                risk_level = "Low";
+                win_prob = 0.50;
+                payout_multiplier = 0.909;
+            elseif effective_risk < 0.15
+                % Average Risk (Mixed Portfolio)
+                risk_level = "Average";
+                win_prob = 0.45;
+                payout_multiplier = 1.0;
+            else
+                % High Risk (Parlays)
+                risk_level = "High";
+                win_prob = 0.10;
+                payout_multiplier = 7.0;
+            end
         end
 
-        function tol = calculate_tol(self)
-            tol = 1;
+        function profit = place_bet(self, bet_amount)
+            [~, win_prob, payout_multiplier] = self.determine_bet_profile();
+            
+            % Simulate outcome
+            is_win = rand() < win_prob;
+            
+            if is_win
+                % Gambler wins
+                profit = bet_amount * payout_multiplier;
+                self.NetProfit = self.NetProfit + profit;
+                
+                % Reset risk tolerance back to original value (Markov Chain restart)
+                self.CurrentRiskTolerance = self.BaseRiskTolerance;
+            else
+                % Gambler loses
+                profit = -bet_amount;
+                self.NetProfit = self.NetProfit + profit;
+                
+                % Chase losses: multiply risk tolerance by a chasing coefficient > 1
+                self.CurrentRiskTolerance = min(1.0, self.CurrentRiskTolerance * self.ChasingCoefficient);
+            end
         end
 
-        function loss = calculate_loss(self)
-            loss = self.Age;
+        function simulate_year(self, total_bets, base_bet_amount)
+            self.BetHistory = zeros(total_bets, 1);
+            self.ProfitHistory = zeros(total_bets, 1);
+            current_profit = 0;
+            
+            for i = 1:total_bets
+                % Bet size scales with risk tolerance, capped at 5% of disposable income
+                bet_amount = base_bet_amount * (self.CurrentRiskTolerance / self.BaseRiskTolerance);
+                max_bet = max(base_bet_amount, self.DisposableIncome * 0.05);
+                bet_amount = min(bet_amount, max_bet);
+                
+                outcome = self.place_bet(bet_amount);
+                current_profit = current_profit + outcome;
+                
+                self.BetHistory(i) = outcome;
+                self.ProfitHistory(i) = current_profit;
+            end
         end
     end
 end
