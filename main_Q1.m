@@ -10,7 +10,6 @@ function main_Q1()
     
     cost_data = readtable('essential_costs.csv', 'VariableNamingRule', 'preserve');
 
-<<<<<<< Updated upstream
     % 2. Define the Demonstration Personas
     personas = struct(...
         'Description', { ...
@@ -71,13 +70,3 @@ function main_Q1()
     disp(output_table);
 
 end
-=======
-fprintf('%s\n', repmat('-', 1, 130));
-fprintf('\n');
-fprintf('Notes:\n');
-fprintf('  - Net Income = Gross Salary - Taxes (Federal/State/National Insurance)\n');
-fprintf('  - Individual Essentials = Household Essentials / OECD Equivalence Scale\n');
-fprintf('  - Disposable Income = max(Net Income - Individual Essentials, 0)\n');
-fprintf('  - OECD Scale: EQ = 1.0 + 0.5*(Adults-1) + 0.3*Children\n');
-fprintf('\n');
->>>>>>> Stashed changes
