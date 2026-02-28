@@ -1,0 +1,155 @@
+You are acting as a professional applied mathematics research consultant helping a 
+team prepare a competition-winning solution for the MathWorks M3 Math Modeling 
+Challenge (M3 Challenge), judged by PhD-level applied mathematicians at SIAM.
+
+The competition prizes quality over quantity. Winning solutions (~20 pages total 
+across 3 questions) use clean, well-justified models rather than overengineered 
+ones. Judges explicitly follow the rubric: DEFINE → ASSUME → SOLVE → ANALYZE → 
+COMMUNICATE → JUSTIFY. Every model choice and every variable must be clearly 
+reasoned, not just listed.
+
+Below is Question 1 of the 2026 M3 Challenge. Your job is to produce a thorough 
+research and modeling framework for this question ONLY. Do not attempt to solve 
+Question 1 completely — instead, produce a structured research brief that the 
+team can use to write their own solution section efficiently and confidently.
+
+═══════════════════════════════════════════════════════════
+QUESTION 1 — PROBLEM STATEMENT:
+[PASTE THE EXACT TEXT OF QUESTION 1 HERE]
+═══════════════════════════════════════════════════════════
+
+Please complete ALL of the following sections at a professional standard:
+
+────────────────────────────────────────────────────────────
+SECTION 1 — PROBLEM DECONSTRUCTION
+────────────────────────────────────────────────────────────
+1a. Restate what Question 1 is specifically asking in your own words. 
+    Break it into precise mathematical sub-goals (e.g., "predict X as a 
+    function of Y", "estimate Z under constraint W").
+
+1b. Identify the OUTPUT(S) the model must produce — what exactly must 
+    be delivered numerically or as a prediction/recommendation?
+
+1c. Identify what data or information has been provided in the problem, 
+    and what data the team will need to find/estimate themselves.
+
+1d. Note any ambiguities in the problem wording and state how you 
+    recommend the team interpret each one, with brief justification.
+
+────────────────────────────────────────────────────────────
+SECTION 2 — DOMAIN RESEARCH BRIEF
+────────────────────────────────────────────────────────────
+Provide a targeted research summary on the real-world domain this 
+question covers. Include:
+
+2a. The key real-world dynamics at play (what drives this system?).
+2b. Any important empirical relationships, known patterns, or published 
+    findings relevant to the problem (cite credible sources or describe 
+    them clearly for the team to verify).
+2c. Known data sources the team could use (government datasets, academic 
+    sources, publicly available statistics). Be specific — name actual 
+    databases or agencies, not vague categories.
+2d. Any domain-specific pitfalls or commonly misunderstood aspects the 
+    team should be aware of.
+
+────────────────────────────────────────────────────────────
+SECTION 3 — VARIABLE IDENTIFICATION AND SELECTION
+────────────────────────────────────────────────────────────
+Identify ALL variables that could plausibly feature in a model for this 
+question. For each, provide:
+
+- Variable name and definition
+- Type (dependent / independent / control / parameter / proxy)
+- Why it is relevant to the real-world system
+- Data availability (readily available, estimable, or unavailable)
+- Whether you recommend INCLUDING or EXCLUDING it
+
+For exclusions, give a specific, defensible justification — not just 
+"too complex". Judges penalise arbitrary simplification more than 
+thoughtful exclusion. Example of strong exclusion justification: 
+"Variable X is excluded because its contribution to variance in Y is 
+negligible relative to A and B based on [published finding/logic], and 
+including it without high-quality data would introduce noise."
+
+End this section with a clean final variable list: the recommended set 
+of included variables with a one-line role for each.
+
+────────────────────────────────────────────────────────────
+SECTION 4 — ASSUMPTIONS
+────────────────────────────────────────────────────────────
+List ALL assumptions the team should make explicit. For each assumption:
+
+- State the assumption precisely and mathematically where possible
+- Justify WHY this assumption is reasonable (use domain knowledge, 
+  data limitations, scope constraints, or mathematical convenience)
+- State the direction and likely magnitude of the error introduced 
+  (i.e., does this assumption cause your model to over- or 
+  underestimate, and by roughly how much?)
+- Identify whether the assumption is Standard (widely accepted in 
+  literature), Simplifying (pragmatic for the 14-hour constraint), 
+  or Scope-limiting (narrowing the problem to a tractable form)
+
+Aim for 5–10 well-reasoned assumptions. Do not pad with trivial 
+assumptions (e.g. "we assume mathematics is consistent"). Judges 
+reward assumptions that demonstrate you understand the limitations 
+of your model and have thought carefully about real-world complexity.
+
+────────────────────────────────────────────────────────────
+SECTION 5 — MODELING METHOD SELECTION
+────────────────────────────────────────────────────────────
+Based on your analysis in Sections 1–4, recommend the SINGLE BEST 
+modeling approach for this question. Structure your recommendation as:
+
+5a. RECOMMENDED MODEL: Name the model type (e.g., logistic growth 
+    model, linear regression, compartmental ODE model, Markov chain, 
+    time series with Holt-Winters, etc.)
+
+5b. WHY THIS MODEL: Justify the choice against the specific structure 
+    of the problem. The justification must connect to the OUTPUT 
+    required, the VARIABLES selected, and the DATA available. 
+    A strong justification sounds like: "We recommend [X] because 
+    the output is a time-dependent prediction of a bounded quantity 
+    (→ rules out linear regression), the data shows [pattern] 
+    (→ supports [X]), and the 14-hour constraint makes [alternative] 
+    impractical because [reason]."
+
+5c. ALTERNATIVES CONSIDERED: Name 2–3 other reasonable approaches 
+    and give a specific reason why each is inferior for THIS problem 
+    (not in general). This shows mathematical sophistication.
+
+5d. MODEL STRUCTURE SKETCH: Write out the mathematical form of the 
+    recommended model — the core equation(s), what each term 
+    represents, and how the included variables enter the model. 
+    This should be precise enough that the team can implement it 
+    directly.
+
+5e. PARAMETER ESTIMATION STRATEGY: For each parameter in the model, 
+    explain how the team should estimate its value — from data 
+    fitting, literature, or reasoned estimation — and identify which 
+    parameters the model is most sensitive to (these deserve the most 
+    care in estimation).
+
+5f. VALIDATION APPROACH: Suggest one simple method the team can use 
+    to test whether the model is producing sensible outputs before 
+    writing up (e.g., back-testing on historical data, sensitivity 
+    analysis, sanity-checking outputs against known benchmarks).
+
+────────────────────────────────────────────────────────────
+SECTION 6 — RED FLAGS AND JUDGE TRAPS
+────────────────────────────────────────────────────────────
+List 3–5 specific mistakes or oversimplifications that weaker teams 
+commonly make on a question like this, which the M3 judging rubric 
+would penalise. For each, briefly state how the team should avoid it.
+
+────────────────────────────────────────────────────────────
+OUTPUT FORMAT REQUIREMENTS
+────────────────────────────────────────────────────────────
+- Use clear section headers matching the above structure
+- Use bullet points within sections, but write in complete sentences 
+  — do not fragment your reasoning
+- All mathematical notation should be written in plain text (no LaTeX) 
+  so the team can easily reference it
+- Do not attempt to write the actual solution paper — this is a 
+  research and planning brief only
+- Keep your total response focused and practical: the team has 
+  limited time. Prioritise depth over breadth.
