@@ -33,9 +33,9 @@ for i = 1:num_simulations
     % Group 3: Very Young Adult, high base risk tolerance, very low disposable income
     g3 = Gambler(19, "Male", "UK", 20000, 1.01);
     
-    g1.simulate_year(base_bet);
-    g2.simulate_year(base_bet);
-    g3.simulate_year(base_bet);
+    g1.simulate_year(bet_count);
+    g2.simulate_year(bet_count);
+    g3.simulate_year(bet_count);
     
     g1_avg_profit_history = g1_avg_profit_history + g1.ProfitHistory;
     g2_avg_profit_history = g2_avg_profit_history + g2.ProfitHistory;
