@@ -84,10 +84,10 @@ end
 plot([base_profit, base_profit], [0, length(sorted_swings)+1], 'k--', 'LineWidth', 1.5, 'HandleVisibility', 'off');
 
 % Format Chart
-set(gca, 'YTick', 1:length(sorted_params), 'YTickLabel', sorted_params, 'FontSize', 10);
+set(gca, 'YTick', 1:length(sorted_params), 'YTickLabel', sorted_params, 'FontSize', 10, 'XColor', 'k', 'YColor', 'k');
 ylim([0.5, length(sorted_params) + 0.5]);
-xlabel('Average Annual Net Profit (USD)', 'FontSize', 12, 'FontWeight', 'bold');
-title('Sensitivity Analysis of Annual Gambling Profit', 'FontSize', 14);
+xlabel('Average Annual Net Profit (USD)', 'FontSize', 12, 'FontWeight', 'bold', 'Color', 'k');
+title('Sensitivity Analysis of Annual Gambling Profit', 'FontSize', 14, 'Color', 'k');
 
 % Add custom legends for colored bars
 % Mock scatter plots to produce legend entries with correct colors
@@ -96,6 +96,7 @@ h2 = plot(NaN, NaN, 'LineWidth', 8, 'Color', [0 0.4470 0.7410]);
 legend([h1, h2], {'Result of Lower Parameter Bound', 'Result of Upper Parameter Bound'}, 'Location', 'best', 'Box', 'off');
 
 grid on;
+set(gca, 'GridColor', 'w');
 hold off;
 
 % --- Helper Functions ---
