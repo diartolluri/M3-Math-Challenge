@@ -2,7 +2,7 @@
 % Primary script that loads the data, defines the demonstration personas, 
 % loops through them, and prints the final output table.
 
-function main_Q1()
+function MAIN_Q1()
     % 1. Load the empirical essential costs data
     if ~exist('Q1/data/essential_costs.csv', 'file')
         error('MAIN_Q1:MissingFile', 'Could not find essential_costs.csv in the current directory.');
