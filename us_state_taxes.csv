@@ -1,52 +1,55 @@
-State,Rate
-AL,0.05
-AK,0.00
-AZ,0.025
-AR,0.047
-CA,0.0825
-CO,0.044
-CT,0.0699
-DE,0.066
-FL,0.00
-GA,0.0549
-HI,0.11
-ID,0.058
-IL,0.0495
-IN,0.0315
-IA,0.057
-KS,0.057
-KY,0.045
-LA,0.0425
-ME,0.0715
-MD,0.0575
-MA,0.05
-MI,0.0425
-MN,0.0985
-MS,0.05
-MO,0.048
-MT,0.059
-NE,0.0664
-NV,0.00
-NH,0.00
-NJ,0.1075
-NM,0.059
-NY,0.109
-NC,0.0525
-ND,0.029
-OH,0.04
-OK,0.0475
-OR,0.099
-PA,0.0307
-RI,0.0599
-SC,0.064
-SD,0.00
-TN,0.00
-TX,0.00
-UT,0.0465
-VT,0.0875
-VA,0.0575
-WA,0.00
-WV,0.065
-WI,0.0765
-WY,0.00
-DC,0.1075
+Country,Region,Effective_State_Tax_Rate
+US,Alabama,0.0500
+US,Alaska,0.0000
+US,Arizona,0.0250
+US,Arkansas,0.0390
+US,California,0.1330
+US,Colorado,0.0440
+US,Connecticut,0.0699
+US,Delaware,0.0660
+US,Florida,0.0000
+US,Georgia,0.0519
+US,Hawaii,0.1100
+US,Idaho,0.0530
+US,Illinois,0.0495
+US,Indiana,0.0295
+US,Iowa,0.0380
+US,Kansas,0.0558
+US,Kentucky,0.0350
+US,Louisiana,0.0300
+US,Maine,0.0715
+US,Maryland,0.0650
+US,Massachusetts,0.0900
+US,Michigan,0.0425
+US,Minnesota,0.0985
+US,Mississippi,0.0400
+US,Missouri,0.0470
+US,Montana,0.0565
+US,Nebraska,0.0455
+US,Nevada,0.0000
+US,New Hampshire,0.0000
+US,New Jersey,0.1075
+US,New Mexico,0.0590
+US,New York,0.1090
+US,North Carolina,0.0399
+US,North Dakota,0.0250
+US,Ohio,0.0275
+US,Oklahoma,0.0450
+US,Oregon,0.0990
+US,Pennsylvania,0.0307
+US,Rhode Island,0.0599
+US,South Carolina,0.0600
+US,South Dakota,0.0000
+US,Tennessee,0.0000
+US,Texas,0.0000
+US,Utah,0.0450
+US,Vermont,0.0875
+US,Virginia,0.0575
+US,Washington,0.0900
+US,West Virginia,0.0482
+US,Wisconsin,0.0765
+US,Wyoming,0.0000
+US,District of Columbia,0.1075
+UK,England,0.0000
+UK,Scotland,0.0000
+UK,Wales,0.0000

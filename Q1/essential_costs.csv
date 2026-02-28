@@ -1,0 +1,9 @@
+Country,Region,Base_Housing_Annual,Base_Food_Annual,Base_Transport_Annual,Base_Healthcare_Annual
+US,Texas,14744,3856,8454,3271
+US,California,22471,4463,8681,3255
+US,New York,35525,7116,4710,4695
+US,Florida,22049,4802,7395,2801
+UK,England,2769,1706,2101,250
+UK,Wales,2166,1617,2114,250
+UK,Scotland,2127,1599,1973,250
+UK,Northern Ireland,1854,2025,2327,250
