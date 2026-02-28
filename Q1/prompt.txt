@@ -1,0 +1,110 @@
+You are an expert MATLAB programmer. Your task is to implement a deterministic "Rule-Based Accounting Model with Empirical Equivalence" to calculate an individual's disposable income based on demographic inputs. You do not have internet access. You must write clean, well-documented MATLAB code that strictly follows the architectural logic and data structures defined below.
+
+1. System Architecture & File Structure
+The model must be modular. Create the following specific MATLAB files:
+
+main_Q1.m: The primary script that loads the data, defines the demonstration personas, loops through them, and prints the final output table.
+
+calculate_taxes.m: A function that computes exact post-tax net income based on 2024 U.S. and U.K. statutory tax brackets.
+
+calculate_essentials.m: A function that estimates total household essential costs via table lookups from provided empirical data.
+
+apply_oecd_scale.m: A function that converts household costs to individual costs.
+
+2. Expected Inputs
+Every persona passed through the functions will be a struct containing:
+
+Salary: Gross annual salary (numeric).
+
+Age: Age of the individual (numeric).
+
+Country: String ('US' or 'UK').
+
+Region: String (e.g., 'Texas', 'California', 'England', 'Scotland').
+
+Adults: Number of adults in the household (numeric, minimum 1).
+
+Children: Number of dependents in the household (numeric).
+
+3. Core Logic & Mathematical Formulation
+
+Module A: calculate_taxes(persona)
+
+If Country is 'US':
+
+Federal Income Tax: Subtract the 2024 single standard deduction ($14,600) or married standard deduction ($29,200 if Adults > 1) from Gross Salary. If the result is negative, taxable income is $0. Apply the 2024 progressive marginal tax brackets to the taxable income (hardcode the 10%, 12%, 22%, 24%, 32%, 35%, 37% brackets into the function).
+
+FICA (Payroll Tax): Calculate Social Security at 6.2% of Gross Salary up to the 2024 wage base limit of $168,600. Calculate Medicare at 1.45% of total Gross Salary (no limit).
+
+State Tax: Read the user-provided us_state_taxes.csv. Find the row matching persona.Region. Multiply Gross Salary by the effective state tax rate (for simplicity in this 14-hour challenge proxy, use a flat effective rate lookup).
+
+Net Income = Gross Salary - (Federal Tax + FICA + State Tax).
+
+If Country is 'UK':
+
+Income Tax: Subtract the standard Personal Allowance (£12,570). Apply the 20% (£12,571 to £50,270), 40% (£50,271 to £125,140), and 45% (over £125,140) brackets. (Reduce personal allowance by £1 for every £2 earned over £100,000).
+
+National Insurance (Class 1): 0% up to £12,570; 8% between £12,570 and £50,270; 2% above £50,270.
+
+Net Income = Gross Salary - (Income Tax + NI).
+
+Module B: calculate_essentials(persona, cost_data)
+
+The function takes the persona struct and a pre-loaded table of baseline costs (cost_data).
+
+Filter the cost_data table to match the persona.Country and persona.Region.
+
+Extract the Base_Housing, Base_Food, Base_Transport, and Base_Healthcare annual costs.
+
+Healthcare Age Scaling: If persona.Age > 65 and Country == 'US', multiply Base_Healthcare by 2.5 (proxy for increased out-of-pocket costs).
+
+Total Household Essentials = Base_Housing + Base_Food + Base_Transport + Base_Healthcare.
+
+Module C: apply_oecd_scale(household_essentials, adults, children)
+
+Apply the OECD-modified equivalence scale factor (EQ):
+EQ=1.0+0.5×(adults−1)+0.3×children
+
+Calculate the individual's portion of the essential costs:
+Individual_Essentials= 
+EQ
+household_essentials
+​	
+ 
+
+Return Individual_Essentials.
+
+Module D: Final Calculation in main_Q1.m
+
+For each persona, calculate: I 
+d
+​	
+ =max(Net Income−Individual Essentials,0)
+
+Print a formatted MATLAB table to the console with the following columns: ``.
+
+4. Data Structure Assumptions (CSV Formats)
+Write your code assuming the user has provided two CSV files in the working directory that you will read using readtable().
+
+tax_rates.csv schema: Country (string), Region (string), Effective_State_Tax_Rate (decimal).
+
+essential_costs.csv schema: Country (string), Region (string), Base_Housing_Annual (numeric), Base_Food_Annual (numeric), Base_Transport_Annual (numeric), Base_Healthcare_Annual (numeric). (Note: These represent the baseline cost for a 1-adult household).
+
+5. Demonstration Personas to Hardcode
+In main_Q1.m, initialize an array of structs with the following 8 personas to prove the model's multidimensional flexibility:
+
+Young Single, TX (US), $35,000, Age 24, 1 Adult, 0 Children
+
+Young Single, CA (US), $35,000, Age 24, 1 Adult, 0 Children
+
+Mid-Career Single, NY (US), $120,000, Age 40, 1 Adult, 0 Children
+
+Mid-Career Family, NY (US), $120,000, Age 40, 2 Adults, 2 Children
+
+Pre-Retiree, FL (US), $65,000, Age 62, 2 Adults, 0 Children
+
+Young Single, England (UK), £35,000, Age 28, 1 Adult, 0 Children
+
+Mid-Career Family, Scotland (UK), £65,000, Age 45, 2 Adults, 2 Children
+
+Pensioner, Wales (UK), £25,000, Age 72, 1 Adult, 0 Children
