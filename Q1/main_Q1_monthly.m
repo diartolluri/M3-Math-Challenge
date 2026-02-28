@@ -55,13 +55,11 @@ function main_Q1_monthly()
         
         % Convert Annual to Monthly
         monthly_net_income = annual_net_income / 12;
-        monthly_indiv_essentials = annual_indiv_essentials / 12;
+        monthly_indiv_essentials = annual_indiv_essentials / 12; % Now a 1x12 array
         
         % Module D: Final Calculation Monthly Id
-        monthly_Id = max(monthly_net_income - monthly_indiv_essentials, 0);
-        
-        % Array of disposable income over 12 months (Fixed over time)
-        monthly_Id_array = repmat(monthly_Id, 1, 12);
+        % Disposable income over 12 months (Varies due to utility costs)
+        monthly_Id_array = max(monthly_net_income - monthly_indiv_essentials, 0);
         
         % Total disposable income over 12 months
         total_12_month_Id = sum(monthly_Id_array);
@@ -70,9 +68,9 @@ function main_Q1_monthly()
         plot(months, monthly_Id_array, '-o', 'LineWidth', 2, 'Color', colors(i,:), ...
              'DisplayName', p.Description);
         
-        % Store results
+        % Store results (use average monthly disposable income for table display)
         results{i, 1} = string(p.Description);
-        results{i, 2} = monthly_Id;
+        results{i, 2} = mean(monthly_Id_array);
         results{i, 3} = total_12_month_Id;
     end
 
@@ -88,7 +86,7 @@ function main_Q1_monthly()
 
     % 6. Create and print the formatted MATLAB table
     output_table = cell2table(results(:, 1:3), ...
-        'VariableNames', {'Persona', 'Monthly_Disposable_Income', 'Total_12_Month_Disposable_Income'});
+        'VariableNames', {'Persona', 'Avg_Monthly_Disposable_Income', 'Total_12_Month_Disposable_Income'});
     
     disp('---------------------------------------------------------');
     disp('   Monthly Deterministic Rule-Based Accounting Model     ');
