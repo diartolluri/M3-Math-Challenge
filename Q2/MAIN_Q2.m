@@ -25,13 +25,13 @@ g3_avg_net_profit = 0;
 % Run the year-long simulation multiple times for each agent
 for i = 1:num_simulations
     % Group 1: Young Adult, high base risk tolerance, lower disposable income
-    g1 = Gambler(22, "Male", "US", 0, 35000, 0.9, max_bet_per_month);
+    g1 = Gambler(22, "Male", 0, 35000, 0.9, max_bet_per_month);
     
     % Group 2: Middle Aged, lower base risk tolerance, higher disposable income
-    g2 = Gambler(45, "Female", "US", 0, 65000, 1.05, max_bet_per_month);
+    g2 = Gambler(100, "Female", 100000, 100000, 1.5, max_bet_per_month);
     
     % Group 3: Very Young Adult, high base risk tolerance, very low disposable income
-    g3 = Gambler(19, "Male", "UK", 0, 20000, 1.01, max_bet_per_month);
+    g3 = Gambler(19, "Male", 0, 2000, 1.01, max_bet_per_month);
     
     g1.simulate_year(bet_count);
     g2.simulate_year(bet_count);

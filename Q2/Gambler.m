@@ -3,7 +3,6 @@ classdef Gambler < handle
         Age
         Wealth
         Gender
-        Country
         SavedIncome
         BaseRiskTolerance
         CurrentRiskTolerance
@@ -15,7 +14,7 @@ classdef Gambler < handle
     end
     
     methods
-        function self = Gambler(age, gender, country, wealth, savedIncome, chasingCoeff, max_bet_per_month)
+        function self = Gambler(age, gender, wealth, savedIncome, chasingCoeff, max_bet_per_month)
             if nargin < 5
                 chasingCoeff = 1.2; % Default chasing coefficient > 1
             end
@@ -23,7 +22,6 @@ classdef Gambler < handle
             self.Wealth = wealth;
             self.Age = age;
             self.Gender = gender;
-            self.Country = country;
             self.SavedIncome = savedIncome;
             self.ChasingCoefficient = chasingCoeff;
             self.NetProfit = 0;
