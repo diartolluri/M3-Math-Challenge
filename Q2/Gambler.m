@@ -1,26 +1,30 @@
 classdef Gambler < handle
     properties
         Age
+        Wealth
         Gender
         Country
-        DisposableIncome
+        SavedIncome
         BaseRiskTolerance
         CurrentRiskTolerance
         ChasingCoefficient
         NetProfit
         BetHistory
         ProfitHistory
+        max_bet_per_month
     end
     
     methods
-        function self = Gambler(age, gender, country, disposableIncome, chasingCoeff)
+        function self = Gambler(age, gender, country, wealth, savedIncome, chasingCoeff, max_bet_per_month)
             if nargin < 5
                 chasingCoeff = 1.2; % Default chasing coefficient > 1
             end
+            self.max_bet_per_month
+            self.Wealth = wealth;
             self.Age = age;
             self.Gender = gender;
             self.Country = country;
-            self.DisposableIncome = disposableIncome;
+            self.SavedIncome = savedIncome;
             self.ChasingCoefficient = chasingCoeff;
             self.NetProfit = 0;
             self.BetHistory = [];
@@ -40,7 +44,7 @@ classdef Gambler < handle
         function [risk_level, win_prob, payout_multiplier] = determine_bet_profile(self)
             % Incorporate risk tolerance and disposable income into a risk profile
             % Average US disposable income ~40,000 for relative scaling
-            income_factor = max(2.0, min(0.5, self.DisposableIncome / 40000));
+            income_factor = max(2.0, min(0.5, self.SavedIncome / 40000));
             effective_risk = self.CurrentRiskTolerance * income_factor;
             
             % Map to defined profiles based on empirical thresholds
@@ -88,22 +92,31 @@ classdef Gambler < handle
         function simulate_year(self, bettingFreq)
             self.BetHistory = zeros(12, 1);
             self.ProfitHistory = zeros(12, 1);
-            base_bet_amount = 0.001 * self.DisposableIncome;
-            max_bet = self.DisposableIncome * 0.05;
 
             for i = 1:12
-                for f = 1:bettingFreq
+                self.Wealth = self.SavedIncome + self.Wealth;
 
+                for f = 1:bettingFreq
                     total_profit = 0;
-                    betting = true;
+                    betting = self.Wealth > 0;
+                    base_bet_amount = 0.001 * self.SavedIncome;
+                    max_bet = self.SavedIncome * 0.05;
 
                     while betting
                         bet_amount = base_bet_amount * (self.CurrentRiskTolerance / self.BaseRiskTolerance);
                         bet_amount = min(bet_amount, max_bet);
                         outcome = self.place_bet(bet_amount);
                         total_profit = total_profit + outcome;
+                        self.Wealth = self.Wealth + outcome;
                         out = rand();
-                        betting = self.CurrentRiskTolerance > out && total_profit > (-max_bet/bettingFreq);
+                        cond = true;
+                        if self.max_bet_per_month
+                            cond = total_profit > (-max_bet);
+                        else
+                            cond = total_profit > (-max_bet/bettingFreq);
+                        end
+                        
+                        betting = self.CurrentRiskTolerance > out && cond && self.Wealth > 0;
                     end
 
                     self.NetProfit = self.NetProfit + total_profit;
