@@ -9,7 +9,7 @@ clear; clc; close all;
 % Assume placing a bet every other day on average over one year (180 bets)
 
 bet_count = 5; % number of bets per month
-num_simulations = 250; % Number of simulations to average over
+num_simulations = 1; % Number of simulations to average over
 
 rng(42); % Set random seed for reproducibility
 
@@ -25,7 +25,7 @@ g3_avg_net_profit = 0;
 % Run the year-long simulation multiple times for each agent
 for i = 1:num_simulations
     % Group 1: Young Adult, high base risk tolerance, lower disposable income
-    g1 = Gambler(22, "Male", "US", 35000, 1.001);
+    g1 = Gambler(22, "Male", "US", 35000, -0.1);
     
     % Group 2: Middle Aged, lower base risk tolerance, higher disposable income
     g2 = Gambler(45, "Female", "US", 65000, 1.05);
