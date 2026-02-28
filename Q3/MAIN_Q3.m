@@ -1,80 +1,32 @@
-% MAIN_Q2.m
-% Agentic Markov Chain Simulation for Online Gambling Losses
-clear; clc; close all;
+% Quantifying the Financial Impact of Online Gambling
+% Differential dynamics model based on the "Recovery Burden Months" metric
 
-% We define three different gamblers to simulate based on demographics
-% Gambler(Age, Gender, Country, DisposableIncome, ChasingCoefficient)
+% Define baseline parameters for an individual over time
+simulation_months = 60;   % 5 years
 
-% Simulation configuration
-% Assume placing a bet every other day on average over one year (180 bets)
+% The monthly harmful shortfall is q(t) = max(0, g(t) + s(t) - c(t))
+g_monthly = 200;  % Gambling loss per month ($)
+s_monthly = 50;   % Stress/leakage cost per month ($)
+c_monthly = 100;  % Safe cushion ($)
 
-bet_count = 5; % number of bets per month
-num_simulations = 100; % Number of simulations to average over
-max_bet_per_month = false; % if false people will be willing to be only 0.05(savedIncome/bet_count) else 0.05(savedIncome)
-rng(42); % Set random seed for reproducibility
+% Allocation of shortfall across savings, investing, and debt (must sum to 1)
+a = 0.5; % 50% from liquid savings
+w = 0.3; % 30% from missed investing
+b = 0.2; % 20% to new debt
 
-% Preallocate arrays for average profit history
-g1_avg_profit_history = zeros(12, 1);
-g2_avg_profit_history = zeros(12, 1);
-g3_avg_profit_history = zeros(12, 1);
+% Interest/Return rates (annual)
+r_annual  = 0.07; % 7% expected annual investment return
+id_annual = 0.22; % 22% expected annual debt interest rate
 
-g1_avg_net_profit = 0;
-g2_avg_net_profit = 0;
-g3_avg_net_profit = 0;
+% Milestone delay cost (e.g. extra rent, delayed emergency fund)
+M = 1000; % ($)
 
-% Run the year-long simulation multiple times for each agent
-for i = 1:num_simulations
-    % Group 1: Young Adult, high base risk tolerance, lower disposable income
-    g1 = Gambler(22, "Male", "US", 0, 35000, 0.9, max_bet_per_month);
-    
-    % Group 2: Middle Aged, lower base risk tolerance, higher disposable income
-    g2 = Gambler(100, "Female", "US", 100000, 100000, 1.5, max_bet_per_month);
-    
-    % Group 3: Very Young Adult, high base risk tolerance, very low disposable income
-    g3 = Gambler(19, "Male", "UK", 0, 2000, 1.01, max_bet_per_month);
-    
-    g1.simulate_year(bet_count);
-    g2.simulate_year(bet_count);
-    g3.simulate_year(bet_count);
-    
-    g1_avg_profit_history = g1_avg_profit_history + g1.ProfitHistory;
-    g2_avg_profit_history = g2_avg_profit_history + g2.ProfitHistory;
-    g3_avg_profit_history = g3_avg_profit_history + g3.ProfitHistory;
-    
-    g1_avg_net_profit = g1_avg_net_profit + g1.NetProfit;
-    g2_avg_net_profit = g2_avg_net_profit + g2.NetProfit;
-    g3_avg_net_profit = g3_avg_net_profit + g3.NetProfit;
-end
+% Normal monthly saving capacity 
+C_rep = 500; % ($)
 
-% Calculate averages
-g1_avg_profit_history = g1_avg_profit_history / num_simulations;
-g2_avg_profit_history = g2_avg_profit_history / num_simulations;
-g3_avg_profit_history = g3_avg_profit_history / num_simulations;
+% Calculate the Recovery Burden Months
+% This runs the counterfactual differential tracking the gaps over time.
+RBM = calculate_RBM(simulation_months, g_monthly, s_monthly, c_monthly, a, w, b, r_annual, id_annual, M, C_rep);
 
-g1_avg_net_profit = g1_avg_net_profit / num_simulations;
-g2_avg_net_profit = g2_avg_net_profit / num_simulations;
-g3_avg_net_profit = g3_avg_net_profit / num_simulations;
-
-% ---------------------------------------------------------
-% Plot the average cumulative profit/loss history
-% ---------------------------------------------------------
-figure('Name', 'Yearly Sports Betting Simulation (Averaged)', 'Color', 'w');
-hold on;
-plot(1:12, g1_avg_profit_history, 'LineWidth', 2, 'DisplayName', 'Agent 1: 22yo Male ($35k Income)');
-plot(1:12, g2_avg_profit_history, 'LineWidth', 2, 'DisplayName', 'Agent 2: 45yo Female ($65k Income)');
-plot(1:12, g3_avg_profit_history, 'LineWidth', 2, 'DisplayName', 'Agent 3: 19yo Male ($20k Income)');
-hold off;
-
-title(sprintf('Average Cumulative Profit/Loss Over One Year (%d Simulations)', num_simulations));
-xlabel('Months');
-ylabel('Average Cumulative Profit (USD)');
-legend('Location', 'best');
-grid on;
-
-% ---------------------------------------------------------
-% Display end-of-year summaries
-% ---------------------------------------------------------
-fprintf('--- Average Simulation Results (%d Simulations) ---\n', num_simulations);
-fprintf('Agent 1 (22yo): Average Net Profit = $%.2f, Base Risk = %.2f%%\n', g1_avg_net_profit, g1.BaseRiskTolerance * 100);
-fprintf('Agent 2 (45yo): Average Net Profit = $%.2f, Base Risk = %.2f%%\n', g2_avg_net_profit, g2.BaseRiskTolerance * 100);
-fprintf('Agent 3 (19yo): Average Net Profit = $%.2f, Base Risk = %.2f%%\n', g3_avg_net_profit, g3.BaseRiskTolerance * 100);
+% Output exactly what was asked in "One simple output"
+fprintf('%.2f\n', RBM);
