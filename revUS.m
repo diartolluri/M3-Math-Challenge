@@ -38,6 +38,3 @@ set(gca,'XTickLabel',dates);
 title('Gambling Revenue Over Time');
 xlabel('Time');
 ylabel('Revenue');
-% Display dates vector at the end of script
-disp('Dates:');
-disp(dates);
