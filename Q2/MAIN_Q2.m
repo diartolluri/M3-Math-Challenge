@@ -7,16 +7,16 @@ clear; clc; close all;
 
 % Simulation configuration
 % Assume placing a bet every other day on average over one year (180 bets)
-total_bets = 180;
-base_bet = 50;
-num_simulations = 1000; % Number of simulations to average over
+
+bet_count = 100; % number of bets per month
+num_simulations = 100; % Number of simulations to average over
 
 rng(42); % Set random seed for reproducibility
 
 % Preallocate arrays for average profit history
-g1_avg_profit_history = zeros(total_bets, 1);
-g2_avg_profit_history = zeros(total_bets, 1);
-g3_avg_profit_history = zeros(total_bets, 1);
+g1_avg_profit_history = zeros(12, 1);
+g2_avg_profit_history = zeros(12, 1);
+g3_avg_profit_history = zeros(12, 1);
 
 g1_avg_net_profit = 0;
 g2_avg_net_profit = 0;
@@ -25,17 +25,17 @@ g3_avg_net_profit = 0;
 % Run the year-long simulation multiple times for each agent
 for i = 1:num_simulations
     % Group 1: Young Adult, high base risk tolerance, lower disposable income
-    g1 = Gambler(22, "Male", "US", 35000, 1.25);
+    g1 = Gambler(22, "Male", "US", 35000, 1.001);
     
     % Group 2: Middle Aged, lower base risk tolerance, higher disposable income
-    g2 = Gambler(45, "Female", "US", 65000, 1.10);
+    g2 = Gambler(45, "Female", "US", 65000, 1.005);
     
     % Group 3: Very Young Adult, high base risk tolerance, very low disposable income
-    g3 = Gambler(19, "Male", "UK", 20000, 1.30);
+    g3 = Gambler(19, "Male", "UK", 20000, 1.01);
     
-    g1.simulate_year(total_bets, base_bet);
-    g2.simulate_year(total_bets, base_bet);
-    g3.simulate_year(total_bets, base_bet);
+    g1.simulate_year(base_bet);
+    g2.simulate_year(base_bet);
+    g3.simulate_year(base_bet);
     
     g1_avg_profit_history = g1_avg_profit_history + g1.ProfitHistory;
     g2_avg_profit_history = g2_avg_profit_history + g2.ProfitHistory;
@@ -60,13 +60,13 @@ g3_avg_net_profit = g3_avg_net_profit / num_simulations;
 % ---------------------------------------------------------
 figure('Name', 'Yearly Sports Betting Simulation (Averaged)', 'Color', 'w');
 hold on;
-plot(1:total_bets, g1_avg_profit_history, 'LineWidth', 2, 'DisplayName', 'Agent 1: 22yo Male ($35k Income)');
-plot(1:total_bets, g2_avg_profit_history, 'LineWidth', 2, 'DisplayName', 'Agent 2: 45yo Female ($65k Income)');
-plot(1:total_bets, g3_avg_profit_history, 'LineWidth', 2, 'DisplayName', 'Agent 3: 19yo Male ($20k Income)');
+plot(1:12, g1_avg_profit_history, 'LineWidth', 2, 'DisplayName', 'Agent 1: 22yo Male ($35k Income)');
+plot(1:12, g2_avg_profit_history, 'LineWidth', 2, 'DisplayName', 'Agent 2: 45yo Female ($65k Income)');
+plot(1:12, g3_avg_profit_history, 'LineWidth', 2, 'DisplayName', 'Agent 3: 19yo Male ($20k Income)');
 hold off;
 
 title(sprintf('Average Cumulative Profit/Loss Over One Year (%d Simulations)', num_simulations));
-xlabel('Number of Bets Placed');
+xlabel('Months');
 ylabel('Average Cumulative Profit (USD)');
 legend('Location', 'best');
 grid on;

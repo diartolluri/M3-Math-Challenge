@@ -27,11 +27,12 @@ classdef Gambler < handle
             self.ProfitHistory = [];
             
             % Formula provided: 3.068 + 0.987(Age) - 0.037(Age^2)
-            score = 3.068 + 0.987 * self.Age - 0.037 * (self.Age^2);
+            score = 54.0832 + 1.5402 * self.Age -0.0329 * (self.Age^2);
             % Convert the resulting score to a probability / risk measurement [0, 1]
-            if score > 1
-                score = score / 100;
+            if self.Gender == "Male"
+                score = 53.5213 + 1.9007 * self.Age -0.0405 * (self.Age^2);
             end
+            score = score / 100;
             self.BaseRiskTolerance = max(0.01, min(1, score)); % minimum floor of 1%
             self.CurrentRiskTolerance = self.BaseRiskTolerance;
         end
@@ -39,7 +40,7 @@ classdef Gambler < handle
         function [risk_level, win_prob, payout_multiplier] = determine_bet_profile(self)
             % Incorporate risk tolerance and disposable income into a risk profile
             % Average US disposable income ~40,000 for relative scaling
-            income_factor = min(2.0, max(0.5, self.DisposableIncome / 40000));
+            income_factor = max(2.0, min(0.5, self.DisposableIncome / 40000));
             effective_risk = self.CurrentRiskTolerance * income_factor;
             
             % Map to defined profiles based on empirical thresholds
@@ -84,22 +85,34 @@ classdef Gambler < handle
             end
         end
 
-        function simulate_year(self, total_bets, base_bet_amount)
-            self.BetHistory = zeros(total_bets, 1);
-            self.ProfitHistory = zeros(total_bets, 1);
-            current_profit = 0;
-            
-            for i = 1:total_bets
+        function simulate_year(self, bettingFreq)
+            self.BetHistory = zeros(12, 1);
+            self.ProfitHistory = zeros(12, 1);
+            base_bet_amount = 0.001 * self.DisposableIncome;
+            max_bet = self.DisposableIncome * 0.05;
+
+            for i = 1:12
+                for f = 1:bettingFreq
+
+                    total_profit = 0;
+                    betting = true;
+
+                    while betting
+                        bet_amount = base_bet_amount * (self.CurrentRiskTolerance / self.BaseRiskTolerance);
+                        bet_amount = min(bet_amount, max_bet);
+                        outcome = self.place_bet(bet_amount);
+                        total_profit = total_profit + outcome;
+                        out = rand();
+                        betting = self.CurrentRiskTolerance > out && total_profit > -max_bet;
+                    end
+
+                    self.NetProfit = self.NetProfit + total_profit;
+                end
                 % Bet size scales with risk tolerance, capped at 5% of disposable income
-                bet_amount = base_bet_amount * (self.CurrentRiskTolerance / self.BaseRiskTolerance);
-                max_bet = max(base_bet_amount, self.DisposableIncome * 0.05);
-                bet_amount = min(bet_amount, max_bet);
                 
-                outcome = self.place_bet(bet_amount);
-                current_profit = current_profit + outcome;
                 
-                self.BetHistory(i) = outcome;
-                self.ProfitHistory(i) = current_profit;
+                
+                self.ProfitHistory(i) = self.NetProfit;
             end
         end
     end
